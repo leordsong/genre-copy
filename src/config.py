@@ -21,6 +21,7 @@ if not _env_path.exists():
         "ARK_API_KEY=\n"
         "ARK_BASE_URL=https://ark.cn-beijing.volces.com/api/v3\n"
         "ARK_MODEL=\n"
+        "ARK_REASONING_EFFORT=medium\n"
         "\n"
         "# 火山引擎账单查询配置（可选）\n"
         "VOLC_ACCESS_KEY=\n"
@@ -35,12 +36,22 @@ if not _env_path.exists():
 load_dotenv(_env_path)
 
 
+REASONING_EFFORT_VALUES = {"minimal", "low", "medium", "high"}
+
+
+def _normalize_reasoning_effort(value: str | None) -> str:
+    if value in REASONING_EFFORT_VALUES:
+        return value
+    return "medium"
+
+
 class Config:
     ARK_API_KEY: str = os.getenv("ARK_API_KEY", "")
     ARK_BASE_URL: str = os.getenv(
         "ARK_BASE_URL", "https://ark.cn-beijing.volces.com/api/v3"
     )
     ARK_MODEL: str = os.getenv("ARK_MODEL", "")
+    ARK_REASONING_EFFORT: str = _normalize_reasoning_effort(os.getenv("ARK_REASONING_EFFORT"))
     VOLC_ACCESS_KEY: str = os.getenv("VOLC_ACCESS_KEY", "")
     VOLC_SECRET_KEY: str = os.getenv("VOLC_SECRET_KEY", "")
     SERVER_HOST: str = os.getenv("SERVER_HOST", "0.0.0.0")
@@ -72,6 +83,8 @@ class Config:
     def update(cls, **kwargs) -> None:
         for key, value in kwargs.items():
             if hasattr(cls, key) and value:
+                if key == "ARK_REASONING_EFFORT":
+                    value = _normalize_reasoning_effort(value)
                 setattr(cls, key, value)
 
     @classmethod
@@ -84,6 +97,7 @@ class Config:
             f"ARK_API_KEY={cls.ARK_API_KEY}",
             f"ARK_BASE_URL={cls.ARK_BASE_URL}",
             f"ARK_MODEL={cls.ARK_MODEL}",
+            f"ARK_REASONING_EFFORT={cls.ARK_REASONING_EFFORT}",
             f"",
             f"# 火山引擎账单查询配置（可选）",
             f"VOLC_ACCESS_KEY={cls.VOLC_ACCESS_KEY}",
